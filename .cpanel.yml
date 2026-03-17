@@ -8,5 +8,5 @@ deployment:
     - rm -rf $DEPLOYPATH/.git* 2>/dev/null || true
     - rm -f $DEPLOYPATH/.cpanel.yml 2>/dev/null || true
     - export PATH=/opt/cpanel/ea-nodejs20/bin:$PATH
-    - cd $DEPLOYPATH && npm install --production=false
-    - cd $DEPLOYPATH && npm run build
+    - cd $DEPLOYPATH && npm install --production=false > npm-install.log 2>&1
+    - cd $DEPLOYPATH && npm run build > npm-build.log 2>&1
