@@ -1,0 +1,10 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home4/tsuniity/cdes.tsuniversity.edu.ng
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -R * $DEPLOYPATH/
+    - /bin/cp -R .htaccess $DEPLOYPATH/ 2>/dev/null || true
+    - find $DEPLOYPATH -type d -exec chmod 755 {} \;
+    - rm -rf $DEPLOYPATH/.git* 2>/dev/null || true
+    - rm -f $DEPLOYPATH/.cpanel.yml 2>/dev/null || true
