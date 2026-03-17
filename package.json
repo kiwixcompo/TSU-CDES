@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cpanel": "node scripts/cpanel-build.js",
     "start": "next start",
     "lint": "eslint .",
     "clean": "next clean"
