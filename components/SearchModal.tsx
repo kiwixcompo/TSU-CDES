@@ -106,15 +106,21 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean; onCl
         const parsed = JSON.parse(jsonStr);
         setProspects(parsed);
       } else {
-        throw new Error("No AI provider available");
+        throw new Error("API Key Missing");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch prospects:', error);
-      // Fallback
-      setProspects([
-        { title: 'Entry Level Officer', type: 'Government', salaryRange: '₦80,000 - ₦150,000', description: 'General entry-level role in civil service.' },
-        { title: 'Freelance Professional', type: 'Self-Employed/Skilled', salaryRange: '₦100,000 - ₦300,000', description: 'Independent professional services.' }
-      ]);
+      if (error.message === "API Key Missing" || !process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+         setProspects([
+          { title: 'Configuration Required', type: 'Government', salaryRange: 'N/A', description: 'Please add your NEXT_PUBLIC_GEMINI_API_KEY to your Netlify environment variables to see real career data.' },
+          { title: 'Configuration Required', type: 'Self-Employed/Skilled', salaryRange: 'N/A', description: 'Please add your NEXT_PUBLIC_GEMINI_API_KEY to your Netlify environment variables to see real career data.' }
+        ]);
+      } else {
+        setProspects([
+          { title: 'Error loading data', type: 'Government', salaryRange: 'N/A', description: 'There was an error connecting to the AI service. Please try again later.' },
+          { title: 'Error loading data', type: 'Self-Employed/Skilled', salaryRange: 'N/A', description: 'There was an error connecting to the AI service. Please try again later.' }
+        ]);
+      }
     } finally {
       setLoading(false);
     }

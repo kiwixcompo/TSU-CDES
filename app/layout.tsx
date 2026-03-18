@@ -3,8 +3,8 @@ import Script from 'next/script';
 import './globals.css'; // Global styles
 
 export const metadata: Metadata = {
-  title: 'My Google AI Studio App',
-  description: 'My Google AI Studio App',
+  title: 'TSU CDES',
+  description: 'TSU CDES',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
