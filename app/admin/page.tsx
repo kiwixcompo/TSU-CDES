@@ -12,7 +12,7 @@ export default function AdminPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'content' | 'staff' | 'events' | 'settings'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'staff' | 'events' | 'previous-directors' | 'settings'>('content');
 
   // Store
   const content = useStore((state) => state.content);
@@ -23,11 +23,15 @@ export default function AdminPage() {
   const addEvent = useStore((state) => state.addEvent);
   const updateEvent = useStore((state) => state.updateEvent);
   const deleteEvent = useStore((state) => state.deleteEvent);
+  const addPreviousDirector = useStore((state) => state.addPreviousDirector);
+  const updatePreviousDirector = useStore((state) => state.updatePreviousDirector);
+  const deletePreviousDirector = useStore((state) => state.deletePreviousDirector);
 
   // Local state for forms
   const [editContent, setEditContent] = useState(content);
   const [newStaff, setNewStaff] = useState<Partial<Staff>>({ name: '', title: '', image: '' });
   const [newEvent, setNewEvent] = useState<Partial<Event>>({ title: '', date: '', description: '' });
+  const [newDirector, setNewDirector] = useState<any>({ name: '', tenure: '', image: '' });
   const [newPassword, setNewPassword] = useState('');
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -80,6 +84,15 @@ export default function AdminPage() {
       setNewEvent({ title: '', date: '', description: '' });
     } else {
       alert('Please fill all event fields');
+    }
+  };
+
+  const handleAddDirector = () => {
+    if (newDirector.name && newDirector.tenure) {
+      addPreviousDirector({ ...newDirector, id: Date.now().toString() });
+      setNewDirector({ name: '', tenure: '', image: '' });
+    } else {
+      alert('Please fill name and tenure fields');
     }
   };
 
@@ -162,6 +175,7 @@ export default function AdminPage() {
             { id: 'content', label: 'General Content' },
             { id: 'staff', label: 'Staff Directory' },
             { id: 'events', label: 'Events Management' },
+            { id: 'previous-directors', label: 'Previous Directors' },
             { id: 'settings', label: 'Settings' },
           ].map((tab) => (
             <button
@@ -450,6 +464,86 @@ export default function AdminPage() {
                   ))}
                   {content.events.length === 0 && (
                     <p className="text-gray-500 text-center py-8">No events found. Add one above.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Previous Directors Tab */}
+          {activeTab === 'previous-directors' && (
+            <div className="space-y-8">
+              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <Plus size={20} className="text-emerald-500" />
+                  Add Previous Director
+                </h3>
+                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                    <input
+                      type="text"
+                      value={newDirector.name}
+                      onChange={(e) => setNewDirector({ ...newDirector, name: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                      placeholder="e.g. Prof. J. A. Ojo"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tenure</label>
+                    <input
+                      type="text"
+                      value={newDirector.tenure}
+                      onChange={(e) => setNewDirector({ ...newDirector, tenure: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                      placeholder="e.g. 2018 - 2022"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <ImageUpload
+                      label="Director Image (Optional)"
+                      value={newDirector.image || ''}
+                      onChange={(val) => setNewDirector({ ...newDirector, image: val })}
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={handleAddDirector}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-colors shadow-sm"
+                >
+                  Add Director
+                </button>
+              </div>
+
+              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Manage Previous Directors</h3>
+                <div className="space-y-4">
+                  {(content.previousDirectors || []).map((director) => (
+                    <div key={director.id} className="flex justify-between items-center p-4 border border-gray-100 rounded-2xl hover:border-blue-200 transition-colors">
+                      <div className="flex items-center gap-4">
+                        {director.image ? (
+                          <img src={director.image} alt={director.name} className="w-12 h-12 rounded-full object-cover bg-gray-100" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                            <ImageIcon size={20} />
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="font-bold text-gray-900">{director.name}</h4>
+                          <p className="text-sm text-blue-600 font-medium">{director.tenure}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => deletePreviousDirector(director.id)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                        title="Delete"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  {(!content.previousDirectors || content.previousDirectors.length === 0) && (
+                    <p className="text-gray-500 text-center py-8">No previous directors found. Add one above.</p>
                   )}
                 </div>
               </div>

@@ -462,14 +462,35 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-950 text-gray-400 py-12 border-t border-gray-900">
-        <div className="container mx-auto px-6 max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
+      <footer className="bg-gray-950 text-gray-400 py-16 border-t border-gray-900">
+        <div className="container mx-auto px-6 max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-12">
           <div className="text-center md:text-left">
-            <p className="text-white font-bold text-xl mb-2">CDES Taraba State University</p>
+            <p className="text-white font-bold text-xl mb-4">CDES Taraba State University</p>
+            <p className="mb-4">Directorate of Career Development and Employability Services.</p>
             <p>© {new Date().getFullYear()} All rights reserved.</p>
           </div>
-          <div className="flex gap-6">
-            <a href="/admin" className="hover:text-white transition-colors text-sm">Admin Login</a>
+          
+          <div className="text-center md:text-left">
+            <h4 className="text-white font-bold text-lg mb-4">Archives</h4>
+            <ul className="space-y-3">
+              <li>
+                <a href="/archives/past-events" className="hover:text-white transition-colors">Past Events</a>
+              </li>
+              <li>
+                <a href="/archives/previous-directors" className="hover:text-white transition-colors">Previous Directors</a>
+              </li>
+            </ul>
+          </div>
+
+          <div className="text-center md:text-right flex flex-col justify-between">
+            <div>
+              <h4 className="text-white font-bold text-lg mb-4">Quick Links</h4>
+              <ul className="space-y-3">
+                <li>
+                  <a href="/admin" className="hover:text-white transition-colors">Admin Login</a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </footer>

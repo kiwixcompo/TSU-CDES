@@ -16,6 +16,13 @@ export interface Event {
   image?: string;
 }
 
+export interface PreviousDirector {
+  id: string;
+  name: string;
+  tenure: string;
+  image?: string;
+}
+
 export interface SiteContent {
   mission: string;
   vision: string;
@@ -29,6 +36,7 @@ export interface SiteContent {
   logoImage: string;
   staff: Staff[];
   events: Event[];
+  previousDirectors: PreviousDirector[];
 }
 
 interface AppState {
@@ -40,6 +48,9 @@ interface AppState {
   addEvent: (event: Event) => void;
   updateEvent: (id: string, event: Partial<Event>) => void;
   deleteEvent: (id: string) => void;
+  addPreviousDirector: (director: PreviousDirector) => void;
+  updatePreviousDirector: (id: string, director: Partial<PreviousDirector>) => void;
+  deletePreviousDirector: (id: string) => void;
 }
 
 const initialContent: SiteContent = {
@@ -75,6 +86,9 @@ const initialContent: SiteContent = {
     { id: '1', title: 'Annual Career Fair 2026', date: '2026-05-15', description: 'Connect with top employers across Nigeria. Bring your resume!' },
     { id: '2', title: 'Resume Writing Workshop', date: '2026-04-10', description: 'Learn how to craft a winning resume that stands out to recruiters.' },
     { id: '3', title: 'Tech Skills Bootcamp', date: '2025-11-20', description: 'Intensive training on modern web development and data science.' },
+  ],
+  previousDirectors: [
+    { id: '1', name: 'Prof. J. A. Ojo', tenure: '2018 - 2022', image: 'https://picsum.photos/seed/director1/400/400' }
   ]
 };
 
@@ -107,6 +121,19 @@ export const useStore = create<AppState>()(
         content: {
           ...state.content,
           events: state.content.events.filter(e => e.id !== id)
+        }
+      })),
+      addPreviousDirector: (director) => set((state) => ({ content: { ...state.content, previousDirectors: [...(state.content.previousDirectors || []), director] } })),
+      updatePreviousDirector: (id, updatedDirector) => set((state) => ({
+        content: {
+          ...state.content,
+          previousDirectors: (state.content.previousDirectors || []).map(d => d.id === id ? { ...d, ...updatedDirector } : d)
+        }
+      })),
+      deletePreviousDirector: (id) => set((state) => ({
+        content: {
+          ...state.content,
+          previousDirectors: (state.content.previousDirectors || []).filter(d => d.id !== id)
         }
       })),
     }),

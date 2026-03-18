@@ -62,36 +62,30 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean; onCl
       const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
       if (apiKey) {
         const ai = new GoogleGenAI({ apiKey });
-        const prompt = `Given the university course '${course}' at Taraba State University Nigeria, provide a list of exactly 3 possible government jobs and exactly 3 skilled/self-employed jobs for a graduate in Nigeria. Use REAL, ACCURATE data for the job titles, descriptions, and realistic potential monthly salary ranges in Nigerian Naira (₦) for each job based on the current economic reality in Nigeria.`;
+        const prompt = `Given the university course '${course}' at Taraba State University Nigeria, provide a list of exactly 10 possible government jobs and exactly 10 skilled/self-employed jobs for a graduate in Nigeria. Use REAL, ACCURATE, and CURRENT data obtained online for the job titles, descriptions, and realistic potential monthly salary ranges in Nigerian Naira (₦) for each job based on the current economic reality in Nigeria. Ensure the results are diverse and vary each time this is asked by pulling the latest data.`;
         
         const response = await ai.models.generateContent({
           model: 'gemini-3-flash-preview',
-          contents: prompt,
+          contents: prompt + " Return ONLY a valid JSON array of objects with keys: 'title' (string), 'type' ('Government' or 'Self-Employed/Skilled'), 'salaryRange' (string), and 'description' (string). Do not include markdown formatting or backticks.",
           config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: 'ARRAY' as any,
-              items: {
-                type: 'OBJECT' as any,
-                properties: {
-                  title: { type: 'STRING' as any, description: 'The job title' },
-                  type: { type: 'STRING' as any, description: 'Must be either "Government" or "Self-Employed/Skilled"' },
-                  salaryRange: { type: 'STRING' as any, description: 'Realistic monthly salary range in Naira (₦)' },
-                  description: { type: 'STRING' as any, description: 'Brief description of the role' }
-                },
-                required: ['title', 'type', 'salaryRange', 'description']
-              }
-            }
+            temperature: 0.9,
+            tools: [{ googleSearch: {} }]
           }
         });
 
         if (response.text) {
-          const parsed = JSON.parse(response.text);
+          let jsonStr = response.text;
+          if (jsonStr.startsWith('\`\`\`json')) {
+            jsonStr = jsonStr.replace(/\`\`\`json\n?/, '').replace(/\`\`\`\n?$/, '');
+          } else if (jsonStr.startsWith('\`\`\`')) {
+            jsonStr = jsonStr.replace(/\`\`\`\n?/, '').replace(/\`\`\`\n?$/, '');
+          }
+          const parsed = JSON.parse(jsonStr);
           setProspects(parsed);
         }
       } else if (typeof window !== 'undefined' && window.puter && window.puter.ai) {
         // Fallback to puter.js if Gemini API key is missing
-        const prompt = `Given the university course '${course}' at Taraba State University Nigeria, provide a list of exactly 3 possible government jobs and exactly 3 skilled/self-employed jobs for a graduate in Nigeria. Use REAL, ACCURATE data for the job titles, descriptions, and realistic potential monthly salary ranges in Nigerian Naira (₦) for each job based on the current economic reality in Nigeria. Return ONLY a valid JSON array of objects with keys: 'title' (string), 'type' ('Government' or 'Self-Employed/Skilled'), 'salaryRange' (string), and 'description' (string). Do not include markdown formatting or backticks.`;
+        const prompt = `Given the university course '${course}' at Taraba State University Nigeria, provide a list of exactly 10 possible government jobs and exactly 10 skilled/self-employed jobs for a graduate in Nigeria. Use REAL, ACCURATE data for the job titles, descriptions, and realistic potential monthly salary ranges in Nigerian Naira (₦) for each job based on the current economic reality in Nigeria. Return ONLY a valid JSON array of objects with keys: 'title' (string), 'type' ('Government' or 'Self-Employed/Skilled'), 'salaryRange' (string), and 'description' (string). Do not include markdown formatting or backticks.`;
         
         const response = await window.puter.ai.chat(prompt);
         let jsonStr = response.message.content;
@@ -139,7 +133,7 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean; onCl
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden mb-20"
+            className="bg-white w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden mb-20 flex flex-col max-h-[85vh]"
           >
             <div className="p-4 border-b border-gray-100 flex items-center gap-3 relative">
               <Search className="text-blue-500" size={24} />
@@ -187,7 +181,7 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean; onCl
             )}
 
             {selectedCourse && !loading && prospects.length > 0 && (
-              <div className="p-6 md:p-8 bg-gray-50">
+              <div className="p-6 md:p-8 bg-gray-50 overflow-y-auto flex-1">
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Career Prospects</h3>
                   <p className="text-gray-600">Insights for <strong>{selectedCourse}</strong></p>
