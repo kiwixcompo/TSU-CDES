@@ -66,22 +66,34 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean; onCl
         
         const response = await ai.models.generateContent({
           model: 'gemini-3-flash-preview',
-          contents: prompt + " Return ONLY a valid JSON array of objects with keys: 'title' (string), 'type' ('Government' or 'Self-Employed/Skilled'), 'salaryRange' (string), and 'description' (string). Do not include markdown formatting or backticks.",
+          contents: prompt,
           config: {
             temperature: 0.9,
-            tools: [{ googleSearch: {} }]
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'ARRAY' as any,
+              items: {
+                type: 'OBJECT' as any,
+                properties: {
+                  title: { type: 'STRING' as any, description: 'The job title' },
+                  type: { type: 'STRING' as any, description: 'Must be either "Government" or "Self-Employed/Skilled"' },
+                  salaryRange: { type: 'STRING' as any, description: 'Realistic monthly salary range in Naira (₦)' },
+                  description: { type: 'STRING' as any, description: 'Brief description of the role' }
+                },
+                required: ['title', 'type', 'salaryRange', 'description']
+              }
+            }
           }
         });
 
         if (response.text) {
-          let jsonStr = response.text;
-          if (jsonStr.startsWith('\`\`\`json')) {
-            jsonStr = jsonStr.replace(/\`\`\`json\n?/, '').replace(/\`\`\`\n?$/, '');
-          } else if (jsonStr.startsWith('\`\`\`')) {
-            jsonStr = jsonStr.replace(/\`\`\`\n?/, '').replace(/\`\`\`\n?$/, '');
+          try {
+            const parsed = JSON.parse(response.text);
+            setProspects(parsed);
+          } catch (parseError) {
+            console.error('Failed to parse JSON:', response.text);
+            throw new Error('Failed to parse the AI response.');
           }
-          const parsed = JSON.parse(jsonStr);
-          setProspects(parsed);
         }
       } else if (typeof window !== 'undefined' && window.puter && window.puter.ai) {
         // Fallback to puter.js if Gemini API key is missing
@@ -90,15 +102,19 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean; onCl
         const response = await window.puter.ai.chat(prompt);
         let jsonStr = response.message.content;
         
-        // Clean up potential markdown formatting
-        if (jsonStr.startsWith('```json')) {
-          jsonStr = jsonStr.replace(/```json\n?/, '').replace(/```\n?$/, '');
-        } else if (jsonStr.startsWith('```')) {
-          jsonStr = jsonStr.replace(/```\n?/, '').replace(/```\n?$/, '');
+        // Extract JSON array using regex
+        const match = jsonStr.match(/\[[\s\S]*\]/);
+        if (match) {
+          jsonStr = match[0];
         }
 
-        const parsed = JSON.parse(jsonStr);
-        setProspects(parsed);
+        try {
+          const parsed = JSON.parse(jsonStr);
+          setProspects(parsed);
+        } catch (parseError) {
+          console.error('Failed to parse JSON from puter:', jsonStr);
+          throw new Error('Failed to parse the AI response.');
+        }
       } else {
         throw new Error("API Key Missing");
       }
